@@ -107,69 +107,104 @@
             </DockPanel>
 
             <!--Content-->
-            <DockPanel IsEnabled="{Binding IsModelLoaded}">
+            <TabControl>
 
-                <DockPanel DockPanel.Dock="Bottom" Height="100" Margin="2">
+                <!--Generator Tab-->
+                <TabItem Header="Generator">
+                    <DockPanel IsEnabled="{Binding IsModelLoaded}">
 
-                    <DockPanel DockPanel.Dock="Right">
-                        <DockPanel>
-                            <UniformGrid Columns="2" DockPanel.Dock="Bottom" Height="30" Width="100">
-                                <Button Content="Clear" Command="{Binding ClearCommand}"/>
-                                <Button Content="Cancel" Command="{Binding CancelCommand}"/>
-                            </UniformGrid>
-                            <Button Content="Send" Command="{Binding SendPromptCommand}" IsDefault="True" />
+                        <DockPanel DockPanel.Dock="Bottom" Height="100" Margin="2">
+
+                            <DockPanel DockPanel.Dock="Right">
+                                <DockPanel>
+                                    <UniformGrid Columns="2" DockPanel.Dock="Bottom" Height="30" Width="100">
+                                        <Button Content="Clear" Command="{Binding ClearCommand}"/>
+                                        <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+                                    </UniformGrid>
+                                    <Button Content="Send" Command="{Binding SendPromptCommand}" IsDefault="True"/>
+                                </DockPanel>
+                            </DockPanel>
+
+                            <TextBox Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}" utils:ShiftEnterBehavior.Enable="True"/>
+
                         </DockPanel>
+
+                        <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2">
+                            <ScrollViewer CanContentScroll="False" utils:AutoScrollBehavior.AutoScroll="True" HorizontalScrollBarVisibility="Disabled" >
+                                <ItemsControl ItemsSource="{Binding}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ItemsControl.DataContext>
+                                        <CollectionViewSource Source="{Binding ResultHistory, ElementName=UI}">
+                                            <CollectionViewSource.SortDescriptions>
+                                                <scm:SortDescription PropertyName="Timestamp" Direction="Ascending" />
+                                            </CollectionViewSource.SortDescriptions>
+                                        </CollectionViewSource>
+                                    </ItemsControl.DataContext>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2">
+                                                <DockPanel>
+                                                    <DockPanel DockPanel.Dock="Left" Margin="10">
+                                                        <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2" VerticalAlignment="Top">
+                                                            <Image Width="60" Height="60" RenderOptions.BitmapScalingMode="Fant">
+                                                                <Image.Style>
+                                                                    <Style TargetType="{x:Type Image}">
+                                                                        <Setter Property="Source" Value="{StaticResource ImageAvatarRobot}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsUserInput}" Value="True">
+                                                                                <Setter Property="Source" Value="{StaticResource ImageAvatarUser}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Image.Style>
+                                                            </Image>
+                                                        </Border>
+                                                    </DockPanel>
+                                                    <DockPanel DockPanel.Dock="Bottom">
+                                                        <TextBlock Text="{Binding Timestamp}" HorizontalAlignment="Right" Margin="0,0,4,2" />
+                                                    </DockPanel>
+                                                    <DockPanel Margin="5">
+                                                        <TextBox Text="{Binding Content}" TextWrapping="Wrap" Style="{x:Null}" BorderThickness="0" IsReadOnly="True" />
+                                                    </DockPanel>
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
                     </DockPanel>
+                </TabItem>
 
-                    <TextBox Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}" utils:ShiftEnterBehavior.Enable="True"/>
+                <!--Tokenizer Tab-->
+                <TabItem Header="Tokenizer">
+                    <Grid IsEnabled="{Binding IsModelLoaded}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                </DockPanel>
+                        <DockPanel Grid.Row="0" Margin="10">
+                            <TextBlock DockPanel.Dock="Top" Text="Encode" />
+                            <Button DockPanel.Dock="Bottom" HorizontalAlignment="Right" Content="Encode" Command="{Binding TokenizerEncodeCommand}" CommandParameter="{Binding Text, ElementName=EncodeInputTextbox, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" Padding="3"/>
+                            <UniformGrid Rows="2">
+                                <TextBox x:Name="EncodeInputTextbox" TextWrapping="Wrap"/>
+                                <TextBox Text="{Binding TokenizerEncodeResult}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="1,0,1,1"/>
+                            </UniformGrid>
+                        </DockPanel>
 
-                <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2">
-                    <ScrollViewer CanContentScroll="False" utils:AutoScrollBehavior.AutoScroll="True" HorizontalScrollBarVisibility="Disabled" >
-                        <ItemsControl ItemsSource="{Binding}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                            <ItemsControl.DataContext>
-                                <CollectionViewSource Source="{Binding ResultHistory, ElementName=UI}">
-                                    <CollectionViewSource.SortDescriptions>
-                                        <scm:SortDescription PropertyName="Timestamp" Direction="Ascending" />
-                                    </CollectionViewSource.SortDescriptions>
-                                </CollectionViewSource>
-                            </ItemsControl.DataContext>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2">
-                                        <DockPanel>
-                                            <DockPanel DockPanel.Dock="Left" Margin="10">
-                                                <Border BorderBrush="Gainsboro" BorderThickness="1" Margin="2" VerticalAlignment="Top">
-                                                    <Image Width="60" Height="60" RenderOptions.BitmapScalingMode="Fant">
-                                                        <Image.Style>
-                                                            <Style TargetType="{x:Type Image}">
-                                                                <Setter Property="Source" Value="{StaticResource ImageAvatarRobot}" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsUserInput}" Value="True">
-                                                                        <Setter Property="Source" Value="{StaticResource ImageAvatarUser}" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Image.Style>
-                                                    </Image>
-                                                </Border>
-                                            </DockPanel>
-                                            <DockPanel DockPanel.Dock="Bottom">
-                                                <TextBlock Text="{Binding Timestamp}" HorizontalAlignment="Right" Margin="0,0,4,2" />
-                                            </DockPanel>
-                                            <DockPanel Margin="5">
-                                                <TextBox Text="{Binding Content}" TextWrapping="Wrap" Style="{x:Null}" BorderThickness="0" IsReadOnly="True" />
-                                            </DockPanel>
-                                        </DockPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
+                        <DockPanel Grid.Row="1" Margin="10">
+                            <TextBlock DockPanel.Dock="Top" Text="Decode" />
+                            <Button DockPanel.Dock="Bottom" HorizontalAlignment="Right" Content="Decode" Command="{Binding TokenizerDecodeCommand}" CommandParameter="{Binding Text, ElementName=DecodeInputTextbox, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" Padding="3"/>
+                            <UniformGrid Rows="2">
+                                <TextBox x:Name="DecodeInputTextbox" TextWrapping="Wrap"/>
+                                <TextBox Text="{Binding TokenizerDecodeResult}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="1,0,1,1"/>
+                            </UniformGrid>
+                        </DockPanel>
+                    </Grid>
+                </TabItem>
 
-            </DockPanel>
+            </TabControl>
 
         </DockPanel>
     </Grid>

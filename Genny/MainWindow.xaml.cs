@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,8 @@ namespace Genny
         private ResultModel _currentResult;
         private SearchOptionsModel _searchOptions;
         private CancellationTokenSource _cancellationTokenSource;
+        private string _tokenizerEncodeResult;
+        private string _tokenizerDecodeResult;
 
         public MainWindow()
         {
@@ -34,6 +37,8 @@ namespace Genny
             OpenModelCommand = new RelayCommand(OpenModelAsync);
             LoadModelCommand = new RelayCommand(LoadModelAsync, CanExecuteLoadModel);
             SendPromptCommand = new RelayCommand(SendPromptAsync, CanExecuteSendPrompt);
+            TokenizerEncodeCommand = new RelayCommand<string>(TokenizerEncodeAsync);
+            TokenizerDecodeCommand = new RelayCommand<string>(TokenizerDecodeAsync);
             ResultHistory = new ObservableCollection<ResultModel>();
             SearchOptions = new SearchOptionsModel();
             InitializeComponent();
@@ -44,6 +49,8 @@ namespace Genny
         public RelayCommand OpenModelCommand { get; }
         public RelayCommand LoadModelCommand { get; }
         public RelayCommand SendPromptCommand { get; }
+        public RelayCommand<string> TokenizerEncodeCommand { get; }
+        public RelayCommand<string> TokenizerDecodeCommand { get; }
         public ObservableCollection<ResultModel> ResultHistory { get; }
 
         public bool IsModelLoaded
@@ -74,6 +81,18 @@ namespace Genny
         {
             get { return _currentResult; }
             set { _currentResult = value; NotifyPropertyChanged(); }
+        }
+
+        public string TokenizerEncodeResult
+        {
+            get { return _tokenizerEncodeResult; }
+            set { _tokenizerEncodeResult = value; NotifyPropertyChanged(); }
+        }
+
+        public string TokenizerDecodeResult
+        {
+            get { return _tokenizerDecodeResult; }
+            set { _tokenizerDecodeResult = value; NotifyPropertyChanged(); }
         }
 
 
@@ -183,9 +202,43 @@ namespace Genny
         }
 
 
+        private async Task TokenizerEncodeAsync(string input)
+        {
+            TokenizerEncodeResult = null;
+            try
+            {
+                var sequences = await EncodeAsync(input);
+                TokenizerEncodeResult = string.Join(", ", sequences[0].ToArray());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Tokenizer Encode Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        private async Task TokenizerDecodeAsync(string input)
+        {
+            TokenizerDecodeResult = null;
+            try
+            {
+                var intArray = input
+                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                     .Select(x => x.Trim())
+                     .Select(int.Parse)
+                     .ToArray();
+                TokenizerDecodeResult = await DecodeAsync(intArray);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Tokenizer Decode Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
         private async IAsyncEnumerable<TokenModel> RunInferenceAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var sequences = await Task.Run(() => _tokenizer.Encode(prompt), cancellationToken);
+            var sequences = await EncodeAsync(prompt, cancellationToken);
 
             using var generatorParams = new GeneratorParams(_model);
             ApplySearchOptions(generatorParams, SearchOptions);
@@ -206,6 +259,18 @@ namespace Genny
                     return new TokenModel(tokenId, tokenizerStream.Decode(tokenId));
                 }, cancellationToken);
             }
+        }
+
+
+        private Task<Sequences> EncodeAsync(string input, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => _tokenizer.Encode(input), cancellationToken);
+        }
+
+
+        private Task<string> DecodeAsync(int[] input, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => _tokenizer.Decode(input), cancellationToken);
         }
 
 
