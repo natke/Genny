@@ -200,7 +200,7 @@ namespace Genny
                 yield return await Task.Run(() =>
                 {
                     generator.ComputeLogits();
-                    generator.GenerateNextTokenTop();
+                    generator.GenerateNextToken();
 
                     var tokenId = generator.GetSequence(0)[^1];
                     return new TokenModel(tokenId, tokenizerStream.Decode(tokenId));
