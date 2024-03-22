@@ -4,7 +4,7 @@ A basic UI for debugging and testing models with OnnxRuntime-GenAI
 
 
 <p align="center" width="100%">
-    <img width="80%" src="Assets/Screenshot1.png">
+    <img width="80%" src="Assets/Screenshot1.PNG">
 </p> 
 
 __________________________
