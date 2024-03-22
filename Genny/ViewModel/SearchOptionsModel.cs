@@ -9,7 +9,7 @@ namespace Genny.ViewModel
         private float _topP = 0.9f;
         private float _temperature = 1;
         private float _repetitionPenalty = 1;
-        private bool _pastPresentShareBuffer = true;
+        private bool _pastPresentShareBuffer = false;
         private int _numReturnSequences = 1;
         private int _numBeams = 1;
         private int _noRepeatNgramSize = 0;
